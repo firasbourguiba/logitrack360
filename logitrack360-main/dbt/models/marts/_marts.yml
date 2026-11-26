@@ -1,0 +1,90 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: "Dimension temps : une ligne par jour. Cle de substitution date_key au format AAAAMMJJ."
+    columns:
+      - name: date_key
+        description: "Cle de substitution, entier AAAAMMJJ."
+        tests: [unique, not_null]
+      - name: date_jour
+        description: "Date du jour (cle naturelle)."
+        tests: [unique, not_null]
+      - name: est_weekend
+        description: "Vrai si le jour est un samedi ou un dimanche."
+
+  - name: dim_zone
+    description: "Dimension geographique aplatie : quartier, ville et pays sont des colonnes (pas de hierarchie parent / enfant)."
+    columns:
+      - name: zone_key
+        description: "Cle de substitution (hash de zone_id)."
+        tests: [unique, not_null]
+      - name: zone_id
+        description: "Cle naturelle de la zone."
+        tests: [unique, not_null]
+      - name: ville
+        description: "Ville de la zone (la zone elle-meme si c'est une ville)."
+        tests: [not_null]
+      - name: quartier
+        description: "Quartier (AOI). Vide si la zone est une ville."
+
+  - name: dim_depot
+    description: "Dimension depot. La ville est recopiee dans la dimension : aucun lien vers dim_zone."
+    columns:
+      - name: depot_key
+        description: "Cle de substitution (hash de depot_id)."
+        tests: [unique, not_null]
+      - name: depot_id
+        tests: [unique, not_null]
+
+  - name: dim_livreur
+    description: "Dimension livreur, version courante. L'historique des changements est dans le snapshot snap_livreurs."
+    columns:
+      - name: livreur_key
+        description: "Cle de substitution (hash de livreur_id)."
+        tests: [unique, not_null]
+      - name: livreur_id
+        tests: [unique, not_null]
+      - name: statut
+        description: "Statut courant du livreur."
+
+  - name: fct_operations
+    description: >
+      Table de faits. Grain : une ligne par operation de livraison ou de ramassage.
+      Le retard (est_en_retard) n'est defini que pour les ramassages, seuls a avoir une heure promise.
+    columns:
+      - name: operation_id
+        description: "Cle du grain."
+        tests: [unique, not_null]
+      - name: date_key
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+      - name: zone_key
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_zone')
+                field: zone_key
+      - name: depot_key
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_depot')
+                field: depot_key
+      - name: livreur_key
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_livreur')
+                field: livreur_key
+      - name: duree_minutes
+        description: "Mesure : duree en minutes. Vide si une heure manque ou si la duree depasse 24 h."
+      - name: est_en_retard
+        description: "Mesure : vrai si le ramassage a eu lieu apres l'heure promise. Toujours faux pour les livraisons."

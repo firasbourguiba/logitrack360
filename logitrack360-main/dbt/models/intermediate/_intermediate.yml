@@ -1,0 +1,33 @@
+version: 2
+
+models:
+  - name: int_operations_enrichies
+    description: >
+      Une ligne par operation, enrichie de la ville et du quartier. Les jointures se font sur des cles
+      uniques : le nombre de lignes doit rester celui de stg_logitrack__operations.
+    columns:
+      - name: operation_id
+        description: "Cle de l'operation. Le test unique verifie l'absence de doublon apres les jointures."
+        tests: [unique, not_null]
+      - name: zone_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_logitrack__zones')
+                field: zone_id
+      - name: depot_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('stg_logitrack__depots')
+                field: depot_id
+      - name: livreur_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('stg_logitrack__livreurs')
+                field: livreur_id
+      - name: ville
+        description: "Ville de l'operation : la ville parente du quartier, ou la zone elle-meme si c'est une ville."
+        tests: [not_null]

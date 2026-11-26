@@ -7,11 +7,26 @@ sources:
     tables:
       - name: zones_geo
         description: "Hierarchie geographique Pays > Ville > Quartier (auto-referencee)"
+        columns:
+          - name: zone_id
+            tests: [unique, not_null]
       - name: depots
         description: "Stations logistiques de depart"
+        columns:
+          - name: depot_id
+            tests: [unique, not_null]
       - name: livreurs
         description: "Coursiers"
+        columns:
+          - name: livreur_id
+            tests: [unique, not_null]
       - name: dim_dates
         description: "Calendrier"
+        columns:
+          - name: date_id
+            tests: [unique, not_null]
       - name: colis_operations
         description: "Operations de livraison et de ramassage (environ 10,65 M de lignes)"
+        columns:
+          - name: operation_id
+            tests: [unique, not_null]

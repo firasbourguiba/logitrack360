@@ -1,19 +1,21 @@
 version: 2
 
 models:
-  - name: stg_zones
-    description: "Zones geographiques telles que chargees (hierarchie parent / enfant)."
+  - name: stg_logitrack__zones
+    description: "Une ligne par zone geographique (pays, ville ou quartier), avec son parent."
     columns:
       - name: zone_id
+        description: "Cle de la zone. Les villes portent leur nom (ex. Shanghai), les quartiers un code prefixe par la ville."
         tests: [unique, not_null]
       - name: niveau
+        description: "Niveau dans la hierarchie : PAYS, VILLE ou QUARTIER_AOI."
         tests:
           - accepted_values:
               arguments:
                 values: ['PAYS', 'VILLE', 'QUARTIER_AOI']
 
-  - name: stg_depots
-    description: "Depots (stations logistiques)."
+  - name: stg_logitrack__depots
+    description: "Une ligne par depot (station logistique)."
     columns:
       - name: depot_id
         tests: [unique, not_null]
@@ -22,23 +24,28 @@ models:
           - not_null
           - relationships:
               arguments:
-                to: ref('stg_zones')
+                to: ref('stg_logitrack__zones')
                 field: zone_id
 
-  - name: stg_livreurs
-    description: "Livreurs."
+  - name: stg_logitrack__livreurs
+    description: "Une ligne par livreur."
     columns:
       - name: livreur_id
         tests: [unique, not_null]
+      - name: statut
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['ACTIF', 'INACTIF', 'EN_CONGE']
 
-  - name: stg_dates
-    description: "Calendrier."
+  - name: stg_logitrack__dates
+    description: "Une ligne par jour du calendrier."
     columns:
-      - name: date_id
+      - name: date_jour
         tests: [unique, not_null]
 
-  - name: stg_operations
-    description: "Operations de livraison et de ramassage, sans les colonnes geographiques."
+  - name: stg_logitrack__operations
+    description: "Une ligne par operation de livraison ou de ramassage, sans les coordonnees GPS."
     columns:
       - name: operation_id
         tests: [unique, not_null]
@@ -52,12 +59,12 @@ models:
           - not_null
           - relationships:
               arguments:
-                to: ref('stg_depots')
+                to: ref('stg_logitrack__depots')
                 field: depot_id
       - name: livreur_id
         tests:
           - not_null
           - relationships:
               arguments:
-                to: ref('stg_livreurs')
+                to: ref('stg_logitrack__livreurs')
                 field: livreur_id

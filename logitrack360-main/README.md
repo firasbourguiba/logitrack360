@@ -121,7 +121,8 @@ logitrack360-main/
     6_demo_scd2.sql
   dbt/
     dbt_project.yml, profiles.yml.example
-    models/ (sources.yml, staging/, marts/)
+    models/ (staging/, intermediate/, marts/, avec _sources.yml, _staging.yml, _intermediate.yml, _marts.yml)
+    tests/ (3 tests métier)
     snapshots/ (snap_livreurs.yml)
   docs/
     rapport_performance.md
@@ -130,18 +131,22 @@ logitrack360-main/
 
 ## Pipeline dbt (`dbt/`)
 
-Deux couches, 10 modèles, 37 tests et 1 snapshot :
+Trois couches, 11 modèles, 66 tests (dont 3 tests métier) et 1 snapshot :
 
-- `staging` (vues) : `stg_zones`, `stg_depots`, `stg_livreurs`, `stg_dates`, `stg_operations`.
-- `marts` (tables, schéma en étoile) : `fct_operations`, `dim_date`, `dim_zone`, `dim_depot`, `dim_livreur`.
-- Tests : `unique`, `not_null`, `accepted_values` et `relationships` (clés du fait vers les dimensions).
-
+- `staging` (vues) : `stg_logitrack__zones`, `__depots`, `__livreurs`, `__dates`, `__operations`
+  (renommage, typage, nettoyage, aucune jointure).
+- `intermediate` (vue) : `int_operations_enrichies`, une ligne par opération avec sa ville et son quartier.
+- `marts` (tables, schéma en étoile) : `fct_operations` (grain : une opération), `dim_date`, `dim_zone`,
+  `dim_depot`, `dim_livreur`, avec des clés de substitution (`date_key` au format AAAAMMJJ, hash `md5` pour les autres).
+- Tests : `unique` et `not_null` sur les sources, les clés primaires et les clés du grain ; `accepted_values` ;
+  `relationships` du fait vers les dimensions ; 3 tests métier dans `dbt/tests/` (retard seulement pour les
+  ramassages, durée valide, fait et staging avec le même nombre de lignes).
 - `snapshots/snap_livreurs.yml` : historique **SCD2** des livreurs (stratégie `check` sur `statut` et
   `zone_affiliation_id`). Chaque changement ferme la ligne courante (`dbt_valid_to` renseigné) et en ouvre
-  une nouvelle. La démonstration est dans `sql/6_demo_scd2.sql` : un livreur passé de `ACTIF` à `EN_CONGE`
-  a deux versions, et l'on retrouve son statut à n'importe quelle date.
+  une nouvelle. La démonstration est dans `sql/6_demo_scd2.sql`.
 
-Les schémas créés sont `dbt_staging`, `dbt_marts` et `dbt_snapshots`, distincts du schéma `mart` du script SQL.
+Les schémas créés sont `dbt_staging`, `dbt_intermediate`, `dbt_marts` et `dbt_snapshots`, distincts du schéma
+`mart` du script SQL.
 
 Installation et exécution (PowerShell) :
 
@@ -151,11 +156,9 @@ python -m venv .venv
 cd dbt
 copy profiles.yml.example profiles.yml     # puis renseigner le mot de passe (fichier ignoré par Git)
 ..\.venv\Scripts\dbt.exe debug --profiles-dir .
-..\.venv\Scripts\dbt.exe run --profiles-dir .
-..\.venv\Scripts\dbt.exe test --profiles-dir .
-..\.venv\Scripts\dbt.exe snapshot --profiles-dir .
+..\.venv\Scripts\dbt.exe build --profiles-dir .      # run + test + snapshot
 ..\.venv\Scripts\dbt.exe docs generate --profiles-dir .
 ..\.venv\Scripts\dbt.exe docs serve --profiles-dir .
 ```
 
-Dernière exécution : 10 modèles construits en 41 s, 37 tests passés.
+Dernière exécution de `dbt build` (hors snapshot) : 11 modèles et 66 tests, 77 sur 77 réussis en 4 min 16 s.
