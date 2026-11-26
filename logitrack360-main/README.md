@@ -118,9 +118,11 @@ logitrack360-main/
     3_index.sql
     4_schema_etoile.sql
     5_passage_echelle.sql
+    6_demo_scd2.sql
   dbt/
     dbt_project.yml, profiles.yml.example
     models/ (sources.yml, staging/, marts/)
+    snapshots/ (snap_livreurs.yml)
   docs/
     rapport_performance.md
     schema_relationnel.png, schema_etoile.png
@@ -128,13 +130,18 @@ logitrack360-main/
 
 ## Pipeline dbt (`dbt/`)
 
-Deux couches, 10 modèles et 37 tests :
+Deux couches, 10 modèles, 37 tests et 1 snapshot :
 
 - `staging` (vues) : `stg_zones`, `stg_depots`, `stg_livreurs`, `stg_dates`, `stg_operations`.
 - `marts` (tables, schéma en étoile) : `fct_operations`, `dim_date`, `dim_zone`, `dim_depot`, `dim_livreur`.
 - Tests : `unique`, `not_null`, `accepted_values` et `relationships` (clés du fait vers les dimensions).
 
-Les schémas créés sont `dbt_staging` et `dbt_marts`, distincts du schéma `mart` du script SQL.
+- `snapshots/snap_livreurs.yml` : historique **SCD2** des livreurs (stratégie `check` sur `statut` et
+  `zone_affiliation_id`). Chaque changement ferme la ligne courante (`dbt_valid_to` renseigné) et en ouvre
+  une nouvelle. La démonstration est dans `sql/6_demo_scd2.sql` : un livreur passé de `ACTIF` à `EN_CONGE`
+  a deux versions, et l'on retrouve son statut à n'importe quelle date.
+
+Les schémas créés sont `dbt_staging`, `dbt_marts` et `dbt_snapshots`, distincts du schéma `mart` du script SQL.
 
 Installation et exécution (PowerShell) :
 
@@ -146,6 +153,7 @@ copy profiles.yml.example profiles.yml     # puis renseigner le mot de passe (fi
 ..\.venv\Scripts\dbt.exe debug --profiles-dir .
 ..\.venv\Scripts\dbt.exe run --profiles-dir .
 ..\.venv\Scripts\dbt.exe test --profiles-dir .
+..\.venv\Scripts\dbt.exe snapshot --profiles-dir .
 ..\.venv\Scripts\dbt.exe docs generate --profiles-dir .
 ..\.venv\Scripts\dbt.exe docs serve --profiles-dir .
 ```

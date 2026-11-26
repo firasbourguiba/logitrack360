@@ -1,0 +1,11 @@
+snapshots:
+  - name: snap_livreurs
+    description: >
+      Historique (SCD de type 2) des livreurs. Chaque changement de statut ou de ville d'affiliation
+      ferme la ligne courante (dbt_valid_to renseigne) et en ouvre une nouvelle (dbt_valid_to vide).
+    relation: ref('stg_livreurs')
+    config:
+      schema: snapshots
+      unique_key: livreur_id
+      strategy: check
+      check_cols: ['statut', 'zone_affiliation_id']
