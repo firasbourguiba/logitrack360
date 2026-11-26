@@ -128,7 +128,7 @@ logitrack360-main/
   docs/
     rapport_performance.md
     kimball.md
-    schema_relationnel.png, schema_etoile.png
+    schema_relationnel.png, schema_etoile.png, dbt_lineage.png
 ```
 
 Conception de l'étoile selon Kimball (processus, grain, dimensions, faits) : `docs/kimball.md`.
@@ -166,5 +166,9 @@ copy profiles.yml.example profiles.yml     # puis renseigner le mot de passe (fi
 ..\.venv\Scripts\dbt.exe docs generate --profiles-dir .
 ..\.venv\Scripts\dbt.exe docs serve --profiles-dir .
 ```
+
+Graphe de lignage généré par `dbt docs` (sources, staging, intermediate, marts et tests métier) :
+
+![Lignage dbt](docs/dbt_lineage.png)
 
 Dernière exécution de `dbt build` (hors snapshot) : 11 modèles et 66 tests, 77 sur 77 réussis en 4 min 16 s.
