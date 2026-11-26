@@ -1,0 +1,68 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: "Dimension temps."
+    columns:
+      - name: date_id
+        tests: [unique, not_null]
+
+  - name: dim_zone
+    description: "Dimension geographique aplatie : quartier, ville, pays."
+    columns:
+      - name: zone_id
+        tests: [unique, not_null]
+      - name: ville
+        description: "Ville de la zone (la zone elle-meme si c'est une ville)."
+        tests: [not_null]
+
+  - name: dim_depot
+    description: "Dimension depot, avec la ville recopiee."
+    columns:
+      - name: depot_id
+        tests: [unique, not_null]
+
+  - name: dim_livreur
+    description: "Dimension livreur."
+    columns:
+      - name: livreur_id
+        tests: [unique, not_null]
+
+  - name: fct_operations
+    description: >
+      Table de faits : une ligne par operation de livraison ou de ramassage.
+      Mesures : duree_minutes, est_en_retard. Le retard n'est defini que pour les ramassages
+      (seuls ceux-ci ont une heure promise).
+    columns:
+      - name: operation_id
+        tests: [unique, not_null]
+      - name: date_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_id
+      - name: zone_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_zone')
+                field: zone_id
+      - name: depot_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_depot')
+                field: depot_id
+      - name: livreur_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_livreur')
+                field: livreur_id
+      - name: duree_minutes
+        description: "Duree en minutes, vide si les heures manquent ou si la duree depasse 24 h."

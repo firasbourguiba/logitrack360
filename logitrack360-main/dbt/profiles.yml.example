@@ -1,0 +1,16 @@
+# Modele : copiez ce fichier en profiles.yml (ignore par Git) et renseignez le mot de passe,
+# ou laissez la variable PGPASSWORD (PowerShell : $env:PGPASSWORD = "...").
+# Le mot de passe est lu dans la variable d'environnement PGPASSWORD (jamais ecrit dans le depot).
+# PowerShell : $env:PGPASSWORD = "votre_mot_de_passe"
+logitrack:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: localhost
+      port: 5432
+      user: postgres
+      password: "{{ env_var('PGPASSWORD') }}"
+      dbname: logitrack360
+      schema: dbt
+      threads: 4

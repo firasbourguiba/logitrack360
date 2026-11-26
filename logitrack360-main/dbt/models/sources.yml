@@ -1,0 +1,17 @@
+version: 2
+
+sources:
+  - name: logitrack
+    description: "Tables relationnelles chargees depuis LaDe (Cainiao) par sql/1_chargement_donnees.py"
+    schema: public
+    tables:
+      - name: zones_geo
+        description: "Hierarchie geographique Pays > Ville > Quartier (auto-referencee)"
+      - name: depots
+        description: "Stations logistiques de depart"
+      - name: livreurs
+        description: "Coursiers"
+      - name: dim_dates
+        description: "Calendrier"
+      - name: colis_operations
+        description: "Operations de livraison et de ramassage (environ 10,65 M de lignes)"

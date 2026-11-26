@@ -1,0 +1,63 @@
+version: 2
+
+models:
+  - name: stg_zones
+    description: "Zones geographiques telles que chargees (hierarchie parent / enfant)."
+    columns:
+      - name: zone_id
+        tests: [unique, not_null]
+      - name: niveau
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['PAYS', 'VILLE', 'QUARTIER_AOI']
+
+  - name: stg_depots
+    description: "Depots (stations logistiques)."
+    columns:
+      - name: depot_id
+        tests: [unique, not_null]
+      - name: zone_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_zones')
+                field: zone_id
+
+  - name: stg_livreurs
+    description: "Livreurs."
+    columns:
+      - name: livreur_id
+        tests: [unique, not_null]
+
+  - name: stg_dates
+    description: "Calendrier."
+    columns:
+      - name: date_id
+        tests: [unique, not_null]
+
+  - name: stg_operations
+    description: "Operations de livraison et de ramassage, sans les colonnes geographiques."
+    columns:
+      - name: operation_id
+        tests: [unique, not_null]
+      - name: type_operation
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['LIVRAISON', 'RAMASSAGE']
+      - name: depot_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_depots')
+                field: depot_id
+      - name: livreur_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_livreurs')
+                field: livreur_id
