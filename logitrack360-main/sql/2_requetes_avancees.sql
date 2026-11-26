@@ -1,10 +1,8 @@
 -- Projet LogiTrack 360 - Requetes avancees
 -- Question metier : "La bataille du dernier kilometre"
 
--- ============================================================
 -- Q1. RANK : classement des livreurs par ville selon leur duree moyenne
 --     (au moins 200 operations pour eviter les petits echantillons)
--- ============================================================
 WITH perf AS (
     SELECT l.zone_affiliation_id AS ville,
            o.livreur_id,
@@ -22,9 +20,7 @@ FROM perf
 ORDER BY ville, rang_ville
 LIMIT 50;
 
--- ============================================================
 -- Q2. NTILE : livreurs d'elite (quartile 1) vs en difficulte (quartile 4)
--- ============================================================
 WITH perf AS (
     SELECT livreur_id, COUNT(*) AS nb_ops, AVG(duree_minutes) AS duree_moy
     FROM colis_operations
@@ -32,17 +28,21 @@ WITH perf AS (
     GROUP BY livreur_id
     HAVING COUNT(*) >= 200
 )
-SELECT NTILE(4) OVER (ORDER BY duree_moy) AS quartile,
-       COUNT(*)                         AS nb_livreurs,
-       ROUND(AVG(duree_moy), 1)         AS duree_moy_groupe
-FROM perf
-GROUP BY 1 ORDER BY 1;
--- (version par livreur : remplacer le GROUP BY par un SELECT livreur_id, NTILE(4) OVER (...) FROM perf)
+, classes AS (
+    SELECT livreur_id, duree_moy,
+           NTILE(4) OVER (ORDER BY duree_moy) AS quartile   -- 1 = les plus rapides
+    FROM perf
+)
+SELECT quartile,
+       COUNT(*)                 AS nb_livreurs,
+       ROUND(AVG(duree_moy), 1) AS duree_moy_groupe
+FROM classes
+GROUP BY quartile
+ORDER BY quartile;
+-- (version par livreur : SELECT livreur_id, duree_moy, quartile FROM classes)
 
--- ============================================================
 -- Q3. Ponctualite : taux de retard des RAMASSAGES par ville
 --     (seuls les ramassages ont une heure promise : time_window_end)
--- ============================================================
 SELECT z.parent_zone_id AS ville,
        COUNT(*) AS nb_ramassages,
        ROUND(100.0 * AVG(o.est_en_retard::int), 2) AS pct_retard
@@ -52,9 +52,7 @@ WHERE o.type_operation = 'RAMASSAGE' AND o.heure_promise IS NOT NULL
 GROUP BY z.parent_zone_id
 ORDER BY pct_retard DESC;
 
--- ============================================================
 -- Q4. LAG : evolution quotidienne du volume (Shanghai) et variation vs veille
--- ============================================================
 WITH jour AS (
     SELECT o.date_id, COUNT(*) AS nb_ops
     FROM colis_operations o
@@ -69,9 +67,7 @@ SELECT date_id, nb_ops,
 FROM jour
 ORDER BY date_id;
 
--- ============================================================
 -- Q5. Heures de saturation : operations par heure de la journee et par depot (top 3 depots)
--- ============================================================
 WITH top_depots AS (
     SELECT depot_id FROM colis_operations GROUP BY depot_id ORDER BY COUNT(*) DESC LIMIT 3
 )
@@ -85,10 +81,8 @@ WHERE o.heure_debut IS NOT NULL
 GROUP BY o.depot_id, EXTRACT(HOUR FROM o.heure_debut)
 ORDER BY o.depot_id, rang_heure;
 
--- ============================================================
 -- Q6. CTE RECURSIVE : parcours de la hierarchie Pays > Ville > Quartier
 --     avec le nombre de quartiers par noeud
--- ============================================================
 WITH RECURSIVE arbre AS (
     SELECT zone_id, nom_zone, niveau, parent_zone_id,
            0 AS profondeur, nom_zone::text AS chemin
