@@ -119,6 +119,7 @@ logitrack360-main/
     4_schema_etoile.sql
     5_passage_echelle.sql
     6_demo_scd2.sql
+    7_requetes_etoile.sql
   dbt/
     dbt_project.yml, profiles.yml.example
     models/ (staging/, intermediate/, marts/, avec _sources.yml, _staging.yml, _intermediate.yml, _marts.yml)
@@ -126,8 +127,13 @@ logitrack360-main/
     snapshots/ (snap_livreurs.yml)
   docs/
     rapport_performance.md
+    kimball.md
     schema_relationnel.png, schema_etoile.png
 ```
+
+Conception de l'étoile selon Kimball (processus, grain, dimensions, faits) : `docs/kimball.md`.
+Trois questions métier sur l'étoile : `sql/7_requetes_etoile.sql` (retard par ville et par mois, livreurs les plus
+rapides, charge par jour de la semaine).
 
 ## Pipeline dbt (`dbt/`)
 
