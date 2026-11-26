@@ -102,6 +102,10 @@ Médianes avant/après index sur 10,65 millions de lignes :
 
 Le gain sur la dernière requête est modeste : le rapport l'explique à partir des plans.
 
+Passage à l'échelle (`sql/5_passage_echelle.sql`, table copiée 3 fois, 31 952 424 lignes) : sans index les requêtes
+passent à environ 7 s, avec index elles restent entre 6 et 500 ms ; le gain de l'index augmente avec le volume
+(retards d'un dépôt : x380 à 10 M, x1 200 à 32 M).
+
 ## Structure du dépôt
 
 ```
@@ -113,6 +117,7 @@ logitrack360-main/
     2_requetes_avancees.sql
     3_index.sql
     4_schema_etoile.sql
+    5_passage_echelle.sql
   dbt/
     dbt_project.yml, profiles.yml.example
     models/ (sources.yml, staging/, marts/)
