@@ -1,3 +1,4 @@
+{{ config(post_hook="alter table {{ this }} add primary key (depot_key)") }}
 -- La ville est recopiee dans la dimension : pas de lien vers dim_zone (schema en etoile).
 select
     md5(d.depot_id) as depot_key,

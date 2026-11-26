@@ -1,3 +1,4 @@
+{{ config(post_hook="alter table {{ this }} add primary key (livreur_key)") }}
 -- Version courante de chaque livreur. L'historique des changements est dans snap_livreurs (SCD2).
 select
     md5(l.livreur_id) as livreur_key,

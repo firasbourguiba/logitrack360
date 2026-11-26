@@ -1,3 +1,10 @@
+{{ config(post_hook=[
+    "alter table {{ this }} add primary key (operation_id)",
+    "alter table {{ this }} add foreign key (date_key) references {{ ref('dim_date') }} (date_key) not valid",
+    "alter table {{ this }} add foreign key (zone_key) references {{ ref('dim_zone') }} (zone_key) not valid",
+    "alter table {{ this }} add foreign key (depot_key) references {{ ref('dim_depot') }} (depot_key) not valid",
+    "alter table {{ this }} add foreign key (livreur_key) references {{ ref('dim_livreur') }} (livreur_key) not valid"
+]) }}
 -- grain : une operation (une livraison ou un ramassage)
 select
     operation_id,

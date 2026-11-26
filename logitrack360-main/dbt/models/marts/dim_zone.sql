@@ -1,3 +1,4 @@
+{{ config(post_hook="alter table {{ this }} add primary key (zone_key)") }}
 -- Hierarchie geographique aplatie : quartier, ville et pays deviennent des colonnes.
 select
     md5(z.zone_id) as zone_key,
